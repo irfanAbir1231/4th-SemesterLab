@@ -1,0 +1,198 @@
+// Task 2
+
+db.createCollection("users", {
+   validator: {
+      $jsonSchema: {
+         bsonType: "object",
+         required: ["name", "password", "email"],
+         properties: {
+            name: {
+               bsonType: "string",
+               description: "must be a string and is required"
+            },
+            password: {
+               bsonType: "string",
+               description: "must be a string and is required"
+            },
+            email: {
+               bsonType: "string",
+               description: "must be a string and is required"
+            }
+         }
+      }
+   }
+});
+
+
+// Task 3
+
+db.createCollection("posts", {
+   validator: {
+      $jsonSchema: {
+         bsonType: "object",
+         required: ["content"],
+         properties: {
+            content: {
+               bsonType: "string",
+               description: "must be a string and is required"
+            }
+         }
+      }
+   }
+});
+
+// Task 4
+// a
+
+db.users.insertOne({
+    name: "Irfan Hakim Bhuiyan",
+    password: "65757",
+    email: "Irfan@gmail.com"
+});
+
+
+// b
+
+db.users.insertOne({
+    name: "sakib hasan",
+    password: "878845",
+    email: "sakib@gmail.com",
+    age: 22,
+    address: "IUT hall",
+    hobbies: ["reading", "gaming", "browsing"]
+});
+
+
+// c
+
+db.users.insertMany([
+   {
+      name: "hasib",
+      password: "78645",
+      email: "hsa@gmail.com",
+      age: 25,
+      address: "456 dhaka",
+      telephone: {
+         work: "123-456-7890",
+         personal: "987-654-3210"
+      }
+   },
+   {
+      name: "abir",
+      password: "8798",
+      email: "ab@gmail.com",
+      age: 28,
+      address: "B.B Gazipur",
+      telephone: {
+         work: "456-789-0123",
+         personal: "789-012-3456"
+      }
+   }
+]);
+
+
+// d 
+
+db.posts.insertMany([
+   {
+      content: "Bangladesh's serene countryside is adorned with expansive rice paddies, symbolizing the nation's agrarian roots",
+      creation_time: new Date()
+   },
+   {
+      content: "The aroma of freshly cooked biryani wafts through the air, tantalizing the senses with its aromatic spices and savory flavors.",
+      creation_time: new Date()
+   },
+   {
+      content: "Dusty alleys come alive with the sounds of children's laughter as ",
+      creation_time: new Date("2024-03-28")
+   },
+   {
+      content: "Along the banks of the Padma River, fishermen diligently cast their nets, ",
+      creation_time: new Date()
+   }
+]);
+
+// 5
+// a
+
+db.users.updateMany(
+   { name: { $in: ["Irfan Hakim Bhuiyan", "sakib hasan", "hasib", "abir"] } },
+   { $addToSet: { followers: { $each: ["jack", "john", "jim", "dark"] } } }
+);
+
+
+// b
+
+db.users.updateMany(
+   { name: { $in: ["Irfan Hakim Bhuiyan", "sakib hasan", "hasib", "abir"] } },
+   { $addToSet: { friends: { $each: ["akash", "batsash", "apple"] } } }
+);
+
+
+// c
+
+db.posts.updateOne(
+   { content: "Along the banks of the Padma River, fishermen diligently cast their nets" },
+   { name: { $in: ["Irfan Hakim Bhuiyan", "sakib hasan", "hasib", "abir"] } },
+);
+
+
+// d
+
+db.posts.updateOne(
+   { content: "The aroma of freshly cooked biryani wafts through the air" },
+   { $addToSet: { comments: { $each: [{ commenter: "hasib", comment: "Great post!"}, { commenter: "sakib hasan", comment: "Interesting topic!"}] } } }
+);
+
+
+// 6
+
+// a
+db.posts.count()
+
+
+// b
+db.posts.find().sort({ creation_time: -1 }).forEach(function(post) {
+    var user = db.users.findOne({ _id: post.poster_id });
+    print("Post: " + post.content);
+    print("Poster: " + user.name);
+    print("Creation Time: " + post.creation_time);
+    print("---------------------");
+});
+
+
+// c
+var yesterday = new Date();
+yesterday.setDate(yesterday.getDate() - 1);
+db.posts.find({ creation_time: { $gte: yesterday } });
+
+
+// d
+db.users.find({ $expr: { $gt: [{ $size: "$followers" }, 3] } });
+
+
+// e
+db.users.find({ age: { $gte: 1990, $lte: 2000 } });
+
+
+// f
+db.users.find().sort({ profile_creation_date: 1 }).limit(3);
+
+
+// g
+db.posts.find({ "comments.commenter": "ABC" });
+
+
+// h
+var post = db.posts.findOne({ content: "Life is too good" });
+if (post) {
+    var user = db.users.findOne({ _id: post.poster_id });
+    printjson(user);
+} else {
+    print("Post not found.");
+}
+
+
+// 7
+
+db.users.deleteMany({ "telephone.work": { $exists: false } });
